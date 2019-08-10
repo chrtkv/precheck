@@ -1,6 +1,7 @@
 import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import generate_tours_list
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 
 "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
@@ -13,3 +14,6 @@ sheet = file.open("test") # open sheet
 worksheet = sheet.get_worksheet(0)
 worksheet.update_acell('C1', 'Lovejodz')
 #print(worksheet.get_all_values())
+
+for i in generate_tours_list.main():
+    print(i['name'])
