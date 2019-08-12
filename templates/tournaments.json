@@ -1,0 +1,176 @@
+{
+    "r": {
+        "description": {
+            "templ": "PGA TOUR - {} ({}{}),\nTime = {},\nScore Type = {}",
+            "cell": "B12"
+        },
+        "homepage": {
+            "templ": "https://www.pgatour.com/tournaments/{}.html",
+            "cell": "B14"
+        },
+        "field": {
+            "templ": "https://www.pgatour.com/tournaments/{}/field.html",
+            "cell": "B16"
+        },
+        "tee-times": {
+            "templ": "https://www.pgatour.com/tournaments/{}/tee-times.html",
+            "cell": "B18"
+        },
+        "leaderboard": {
+            "templ": "https://www.pgatour.com/competition/{}/{}/leaderboard.html",
+            "cell": "B20"
+        },
+        "yahoo": {
+            "templ": "https://www.pgatour.com/yahoo/{}/r/{}/leaderboard.html",
+            "cell": "B23"
+        },
+        "korean": {
+            "templ": "https://www.pgatour.co.kr/competition/{}/{}/leaderboard.html",
+            "cell": "B25"
+        },
+        "past-results": {
+            "templ": "https://www.pgatour.com/tournaments/{}/past-results.html",
+            "cell": "B28"
+        },
+        "past-winners": {
+            "templ": "https://www.pgatour.com/tournaments/{}/past-winners-and-runners-up.html",
+            "cell": "B30"
+        },
+        "course": {
+            "templ": "https://www.pgatour.com/tournaments/{}/course.html",
+            "cell": "B44"
+        },
+        "weather": {
+            "templ": "https://www.pgatour.com/tournaments/{}/weather.html",
+            "cell": "B46"
+        },
+        "pinsheet": {
+            "templ": "https://www.pgatour.com/competition/{}/{}/pinsheet.html",
+            "cell": "B48"
+        }
+    },
+
+    "h": {
+        "description": {
+            "templ": "Korn Ferry - {} ({}{}),\nTime = {},\nScore Type = {}",
+            "cell": "B5"
+        },
+        "homepage": {
+            "templ": "https://www.pgatour.com/korn-ferry-tour/tournaments/{}.html",
+            "cell": "B7"
+        },
+        "field":{
+            "templ": "https://www.pgatour.com/korn-ferry-tour/tournaments/{}/field.html",
+            "cell":"B9"
+        },
+        "tee-times":{
+            "templ": "https://www.pgatour.com/korn-ferry-tour/tournaments/{}/tee-times.html",
+            "cell":"B11"
+        },
+        "leaderboard":{
+            "templ": "https://www.pgatour.com/korn-ferry-tour/tournaments/{}/leaderboard.html",
+            "cell":"B13"
+        },
+        "past-results":{
+            "templ": "https://www.pgatour.com/korn-ferry-tour/tournaments/{}/past-results.html",
+            "cell": "B15"
+        },
+        "past-winners":{
+            "templ": "https://www.pgatour.com/korn-ferry-tour/tournaments/{}/past-winners.html",
+            "cell": "B17"
+        },
+        "course":{
+            "templ": "https://www.pgatour.com/korn-ferry-tour/tournaments/{}/course.html",
+            "cell": "B19"
+        },
+        "weather":{
+            "templ": "https://www.pgatour.com/korn-ferry-tour/tournaments/{}/weather.html",
+            "cell": "B21"
+        }
+    },
+
+    "s": {
+        "description": {
+            "templ": "Champions - {} ({}{}),\nTime = {},\nScore Type = {}",
+            "cell": "B7"
+        },
+        "homepage": {
+            "templ": "https://www.pgatour.com/champions/tournaments/{}.html",
+            "cell": "B9"
+        },
+        "field":{
+            "templ": "https://www.pgatour.com/champions/tournaments/{}/field.html",
+            "cell":"B11"
+        },
+        "tee-times":{
+            "templ": "https://www.pgatour.com/champions/tournaments/{}/tee-times.html",
+            "cell":"B13"
+        },
+        "leaderboard":{
+            "templ": "https://www.pgatour.com/champions/competition/{}/{}/leaderboard.html",
+            "cell":"B15"
+        },
+        "past-results":{
+            "templ": "https://www.pgatour.com/champions/tournaments/{}/past-results.html",
+            "cell": "B17"
+        },
+        "past-winners":{
+            "templ": "https://www.pgatour.com/champions/tournaments/{}/past-winners.html",
+            "cell": "B19"
+        },
+        "course":{
+            "templ": "https://www.pgatour.com/champions/tournaments/{}/course.html",
+            "cell": "B32"
+        },
+        "weather":{
+            "templ": "https://www.pgatour.com/champions/tournaments/{}/weather.html",
+            "cell": "B34"
+        }
+    },
+
+    "c": {
+        "description": {
+            "templ": "Mackenzie Tour - {} ({}{}),\nTime = {},\nScore Type = {}",
+            "cell": "B6"
+        },
+        "homepage": {
+            "templ": "https://www.pgatour.com/canada/en_us/tournaments/{}.html",
+            "cell": "B8"
+        },
+        "field":{
+            "templ": "https://www.pgatour.com/canada/en_us/tournaments/{}/field.html",
+            "cell":"B10"
+        },
+        "tee-times":{
+            "templ": "https://www.pgatour.com/canada/en_us/tournaments/{}/tee-times.html",
+            "cell":"B12"
+        },
+        "leaderboard":{
+            "templ": "https://www.pgatour.com/canada/en_us/tournaments/{}/leaderboard.html",
+            "cell":"B14"
+        },
+        "leaderboard_fr":{
+            "templ": "https://www.pgatour.com/canada/fr_ca/tournaments/{}/leaderboard.html",
+            "cell":"B16"
+        },
+        "past-results":{
+            "templ": "https://www.pgatour.com/canada/en_us/tournaments/{}/past-results.html",
+            "cell": "B18"
+        },
+        "past-winners":{
+            "templ": "https://www.pgatour.com/canada/en_us/tournaments/{}/past-winners.html",
+            "cell": "B20"
+        },
+        "course":{
+            "templ": "https://www.pgatour.com/canada/en_us/tournaments/{}/course.html",
+            "cell": "B22"
+        },
+        "weather":{
+            "templ": "https://www.pgatour.com/canada/en_us/tournaments/{}/weather.html",
+            "cell": "B24"
+        }
+    },
+
+    "m": {
+    }
+}

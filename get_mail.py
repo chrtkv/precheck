@@ -26,14 +26,28 @@ def main():
     raw_email = imap.fetch(data[0], '(RFC822)')[1]
     # choose part of multipart email
     email_body = raw_email[0][1]
-    # convert from bytes
+    # convert from bytes. In msg is mail headers and base64-encoded message
     msg = email.message_from_bytes(email_body)
+
+    for part in msg.walk():
+        if part.get_content_type() == 'text/plain':
+            temp = part.get_payload(decode=True)
+
+
+
+
+
+ 
+    #temp = msg.get_payload(decode=True)
+    
+
     # get 1st part's payload encoded
     msg_base64 = msg.get_payload()[0]
     # decode
-    body_text = msg_base64.get_payload(decode=True)
-
+    # body_text = msg.get_payload(decode=True)
+    # body_text = msg_base64.get_payload(decode=True)
+    
     imap.close()
     imap.logout()
 
-    return body_text
+    return temp

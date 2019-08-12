@@ -39,22 +39,22 @@ def main():
         tournaments_data.append({'name': tournament_info_as_list[1]})
 
         for element2 in tournament_info_as_list:
-            if "korean" in element2.lower():
+            if "korean lb" in element2.lower():
                 tour_code_variable = "R"
-            elif "korn" in element2.lower():
+            elif "korn ferry tour" in element2.lower():
                 tour_code_variable = "H"
-            elif "canada" in element2.lower():
+            elif "pga tour canada" in element2.lower():
                 tour_code_variable = "C"
-            elif "/champions/" in element2.lower():
+            elif "pga tour champions" in element2.lower():
                 tour_code_variable = "S"
-            elif "latinoamerica" in element2.lower():
+            elif "pga tour latinoamerica" in element2.lower():
                 tour_code_variable = "M"
 
             if "time zone" in element2.lower():
                 time_zone_variable = re.split(r": +", element2)[1]
             if "tournament id" in element2.lower():
                 tour_id_variable = re.split(r": +", element2)[1]
-            if "score type" in element2.lower():
+            if "score type:" in element2.lower():
                 score_type_variable = re.split(r": +", element2)[1]
             if "LB" in element2:
                 link_variable = re.split(r"/", element2)[-2]
