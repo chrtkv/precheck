@@ -2,6 +2,7 @@
 Each tournament is dict element of the list.
 Contains all data needed for filling spreadsheet"""
 import re
+import calendar
 
 from bs4 import BeautifulSoup
 
