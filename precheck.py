@@ -6,7 +6,7 @@ import precheck_date
 from googleapiclient import discovery
 from pprint import pprint
 import players_list
-import current_year_for_tour
+import get_current_year_for_tour
 import delete_template_worksheets
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", 
@@ -77,7 +77,7 @@ for element in tours_list:
         pga_score = element['score_type']
         pga_time = element['time_zone']
         pga_link = element['link']
-        pga_year = current_year_for_tour.main(pga_code)
+        pga_year = get_current_year_for_tour.main(pga_code)
         pga_players = players_list.main(pga_code.lower(), pga_id)
         worksheet_index = get_actual_template_worksheet_index(pga_code)
         worksheet = sheet.get_worksheet(worksheet_index)
@@ -112,7 +112,7 @@ for element in tours_list:
         ch_score = element['score_type']
         ch_time = element['time_zone']
         ch_link = element['link']
-        ch_year = current_year_for_tour.main(ch_code)
+        ch_year = get_current_year_for_tour.main(ch_code)
         ch_players = players_list.main(ch_code.lower(), ch_id)
         worksheet_index = get_actual_template_worksheet_index(ch_code)
         worksheet = sheet.get_worksheet(worksheet_index)
