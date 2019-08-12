@@ -7,7 +7,7 @@ from googleapiclient import discovery
 from pprint import pprint
 import players_list
 import current_year_for_tour
-import delete_template_workseets
+import delete_template_worksheets
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", 
 "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
@@ -185,4 +185,4 @@ for element in tours_list:
         ws_new.update_acell(template_c['course']['cell'], template_c['course']['templ'].format(can_link))
         ws_new.update_acell(template_c['weather']['cell'], template_c['weather']['templ'].format(can_link))
 
-delete_template_workseets.main(sheet)
+delete_template_worksheets.main(sheet)
