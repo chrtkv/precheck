@@ -7,13 +7,20 @@ from datetime import datetime
 import sys
 
 def main(tour_code, tour_number):
+    current_year = str(datetime.now().year)
+
     request_template = 'https://statdata.pgatour.com/{}/{}/leaderboard-v2.json'
-    leaderboard_raw = requests.get(request_template.format(tour_code, tour_number))
+    leaderboard_raw = requests.get(request_template.format(tour_code.lower(), tour_number.lower()))
+    
+    def is_tour_exists():
+        return leaderboard_raw.status_code == 200
+            
+    if not is_tour_exists():
+        return "There is no info about tournament. Please, check code and id you entered"
+
     leaderboard_full = leaderboard_raw.json() #dict
     leaderboard_leaderboard = leaderboard_full.get("leaderboard")
     leaderboard_players = leaderboard_leaderboard.get("players") #list
-    
-    current_year = str(datetime.now().year)
 
     def is_tour_info_actual(current_year):
         """Recieves current year. Returns True if json actual or False if not"""
@@ -46,13 +53,14 @@ def main(tour_code, tour_number):
                     last_name = re.split(' ', last_name)
                     full_name = "{}-{}-{}".format(first_name, last_name[0], last_name[1])
                 elif '.' in first_name:
-                    first_name = re.split('\.', first_name)
+                    first_name = re.split(r'\.', first_name)
                     full_name = "{}-{}--{}".format(first_name[0], first_name[1], last_name)
 
                 players_list.append(template.format(player_id, full_name.lower()))
             i += 1
 
         return players_list
+
 
     if is_tour_info_actual(current_year):
         return get_players_list(leaderboard_players)
@@ -64,13 +72,13 @@ def main(tour_code, tour_number):
             i += 1
         if __name__ == '__main__':
             placeholder = 'Tour is not live. Try again later'
-        return(placeholder) 
+        return placeholder
 
 if __name__ == '__main__':
-    if len(sys.argv) == 1 or sys.argv[1] in ["--help", "-h", "help"]:
+    if len(sys.argv) != 3  or sys.argv[1] in ["--help", "-h", "help"]:
         print("Usage: players_list.py code(R, S, H, C) id(3 digits)\n\nPrint top-5 players on the top and 5 random players below")
     else:
-        if "Try again" in main(sys.argv[1], sys.argv[2]):
+        if type(main(sys.argv[1], sys.argv[2])) == str:
             print(main(sys.argv[1], sys.argv[2]))
         else:
             for i in main(sys.argv[1], sys.argv[2]):
