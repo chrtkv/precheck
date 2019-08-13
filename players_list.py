@@ -3,6 +3,7 @@
 import random
 import requests
 import re
+from datetime import datetime
 
 def main(tour_code, tour_number):
     request_template = 'https://statdata.pgatour.com/{}/{}/leaderboard-v2.json'
@@ -10,6 +11,15 @@ def main(tour_code, tour_number):
     leaderboard_full = leaderboard_raw.json() #dict
     leaderboard_leaderboard = leaderboard_full.get("leaderboard")
     leaderboard_players = leaderboard_leaderboard.get("players") #list
+    
+    current_year = str(datetime.now().year)
+
+    def is_tour_info_actual(current_year):
+        """Recieves current year. Returns True if json actual or False if not"""
+        leaderboard_debug = leaderboard_full.get("debug")
+        tour_year = leaderboard_debug['setup_year']
+
+        return current_year == tour_year
 
     def get_players_list(tournament_leaderboard):
         """Get top-5 and 5 random players from leaderboard"""
@@ -43,6 +53,10 @@ def main(tour_code, tour_number):
 
         return players_list
 
-    return get_players_list(leaderboard_players)
-
-#print(main('r', 028))
+    if is_tour_info_actual(current_year):
+        return get_players_list(leaderboard_players)
+    else:
+        placeholder = []
+        for i in range(1, 10):
+            placeholder.append("Fill it by hand when tour will be live")
+        return(placeholder)
