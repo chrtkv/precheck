@@ -4,6 +4,7 @@ import random
 import requests
 import re
 from datetime import datetime
+import sys
 
 def main(tour_code, tour_number):
     request_template = 'https://statdata.pgatour.com/{}/{}/leaderboard-v2.json'
@@ -42,7 +43,7 @@ def main(tour_code, tour_number):
                     first_name = re.split(' ', first_name)
                     full_name = "{}-{}-{}".format(first_name[0], first_name[1], last_name)
                 elif ' ' in last_name:
-                    last_name = re.split(" ", last_name)
+                    last_name = re.split(' ', last_name)
                     full_name = "{}-{}-{}".format(first_name, last_name[0], last_name[1])
                 elif '.' in first_name:
                     first_name = re.split('\.', first_name)
@@ -57,6 +58,20 @@ def main(tour_code, tour_number):
         return get_players_list(leaderboard_players)
     else:
         placeholder = []
-        for i in range(1, 10):
-            placeholder.append("Fill it by hand when tour will be live")
-        return(placeholder)
+        i = 0
+        while i < 10:
+            placeholder.append("Fill it by hand when tour will be live or use './players_list.py TOUR_CODE TOUR_ID' for generating a list")
+            i += 1
+        if __name__ == '__main__':
+            placeholder = 'Tour is not live. Try again later'
+        return(placeholder) 
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1 or sys.argv[1] in ["--help", "-h", "help"]:
+        print("Usage: players_list.py code(R, S, H, C) id(3 digits)\n\nPrint top-5 players on the top and 5 random players below")
+    else:
+        if "Try again" in main(sys.argv[1], sys.argv[2]):
+            print(main(sys.argv[1], sys.argv[2]))
+        else:
+            for i in main(sys.argv[1], sys.argv[2]):
+                print(i)
