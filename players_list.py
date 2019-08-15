@@ -43,7 +43,7 @@ def main(tour_code, tour_number):
                 player_id = tournament_leaderboard[i]["player_id"]
                 first_name = tournament_leaderboard[i]["player_bio"]["first_name"]
                 last_name = tournament_leaderboard[i]["player_bio"]["last_name"]
-                full_name = "{}.{}".format(first_name, last_name)
+                full_name = "{}-{}".format(first_name, last_name)
 
                 # doesn't work if whitespace is both in first and last name or more than one whitespace in name
                 if ' ' in first_name:
