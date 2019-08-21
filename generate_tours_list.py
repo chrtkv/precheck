@@ -34,7 +34,7 @@ def main():
     
     for element in unparsed_list:
         # split text to lines
-        tournament_info_as_list = re.split(r"\n", element)
+        tournament_info_as_list = re.split(r"\n+", element)
         # generate list of dictionaries for each tour
         tournaments_data.append({'name': tournament_info_as_list[1]})
 
