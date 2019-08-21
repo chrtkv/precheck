@@ -1,4 +1,5 @@
-__pycache__/*
+.vscode/
+__pycache__/
 config.json
 precheck-5c5daf9891d6.json
 contacts.json
