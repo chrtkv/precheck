@@ -66,3 +66,7 @@ def main():
         tournaments_data[unparsed_list.index(element)].update({'link': link_variable})
         
     return tournaments_data
+
+if __name__ == "__main__":
+    for i in main():
+        print(i)
