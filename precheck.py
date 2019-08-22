@@ -1,84 +1,89 @@
+#!/usr/bin/env python3
+"""
+This module creates a spreadsheet from the template,
+shares it, fills it from the schedule email and returns link to the spreadsheet.
+"""
+
 import json
+
 import gspread
+from googleapiclient import discovery
 from oauth2client.service_account import ServiceAccountCredentials
+
+import delete_template_worksheets
+import get_current_year_for_tour
+import players_list
 from generate_tours_list import main as generate_tours_list
 from precheck_date import main as precheck_date
-from googleapiclient import discovery
-from pprint import pprint
-import players_list
-import get_current_year_for_tour
-import delete_template_worksheets
 
 # load templates
 with open('templates/tournaments.json') as template_data:
-    template = json.load(template_data)
-template_r = template['r']
-template_h = template['h']
-template_c = template['c']
-template_m = template['m']
-template_s = template['s']
+    TEMPLATE = json.load(template_data)
+TEMPLATE_R = TEMPLATE['r']
+TEMPLATE_S = TEMPLATE['s']
+TEMPLATE_H = TEMPLATE['h']
+TEMPLATE_C = TEMPLATE['c']
+TEMPLATE_M = TEMPLATE['m']
 
 # load config
 with open('config.json') as config_data:
-    config = json.load(config_data)
+    CONFIG = json.load(config_data)
 
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets", 
-"https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets",
+          "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+KEYFILE_NAME = CONFIG['google']['keyfile']
 
-credentials = ServiceAccountCredentials.from_json_keyfile_name('precheck-5c5daf9891d6.json', SCOPES)
-sheet_name_template = "{} Pre-tournament checklist"
-sheet_name = sheet_name_template.format(precheck_date())
-template_id = config['spreadsheet']['template_id']
-tours_list = generate_tours_list()
-share_emails = config['spreadsheet']['share']
+CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name(KEYFILE_NAME, SCOPES)
+TEMPLATE_ID = CONFIG['spreadsheet']['template_id']
+SHARE_EMAILS = CONFIG['spreadsheet']['share']
+SHEET_NAME_TEMPLATE = CONFIG['spreadsheet']['name']
+SHEET_NAME = SHEET_NAME_TEMPLATE.format(precheck_date())
+TOURS_LIST = generate_tours_list()
+
 
 def create_spreadsheet():
-    gs = gspread.authorize(credentials)
+    """Copies spreadsheet from template and shares it with users"""
+    google_sheet = gspread.authorize(CREDENTIALS)
     # Copy spreadsheet from template and share it
-    sheet = gs.copy(template_id, title=sheet_name, copy_permissions=True)
-    sheet.share(share_emails, perm_type='user', role='owner', notify=False)
+    sheet = google_sheet.copy(TEMPLATE_ID, title=SHEET_NAME, copy_permissions=True)
+    sheet.share(SHARE_EMAILS, perm_type='user', role='writer', notify=False)
 
     return sheet
 
 
-def get_actual_template_worksheet_index(tour_code, spreadsheet_id):
-        """Recieves tour code and returns actual index for worksheet with template for appropriate tour"""
-        list_of_worksheets = []
-        list_of_indexes = {}
-        spreadsheet = discovery.build('sheets', 'v4', credentials=credentials)
-        # The ranges to retrieve from the spreadsheet.
-        ranges = []  # TODO: Update placeholder value.
-        # True if grid data should be returned.
-        # This parameter is ignored if a field mask was set in the request.
-        include_grid_data = False  # TODO: Update placeholder value.
-        request = spreadsheet.spreadsheets().get(spreadsheetId=spreadsheet_id, ranges=ranges, includeGridData=include_grid_data)
-        response = request.execute()
+def get_actual_template_worksheet_index(tour_code, sheet_id):
+    """Returns actual index of worksheet with template for appropriate tour"""
+    list_of_worksheets = []
+    list_of_indexes = {}
+    spreadsheet = discovery.build('sheets', 'v4', credentials=CREDENTIALS)
+    request = spreadsheet.spreadsheets().get(spreadsheetId=sheet_id, includeGridData=False)
+    response = request.execute()
 
-        for i in response['sheets']:
-            list_of_worksheets.append(i['properties'])
+    for i in response['sheets']:
+        list_of_worksheets.append(i['properties'])
 
-        for i in list_of_worksheets:
-            if i['title'] == 'PGA TOUR':
-                list_of_indexes.update({'R': i['index']})
-            elif i['title'] == 'Korn Ferry':
-                list_of_indexes.update({'H': i['index']})
-            elif i['title'] == 'Mackenzie-Canada':
-                list_of_indexes.update({'C': i['index']})
-            elif i['title'] == 'Champions':
-                list_of_indexes.update({'S': i['index']})
-            elif i['title'] == 'Latinoamerica':
-                list_of_indexes.update({'M': i['index']})
+    for i in list_of_worksheets:
+        if i['title'] == 'PGA TOUR':
+            list_of_indexes.update({'R': i['index']})
+        elif i['title'] == 'Korn Ferry':
+            list_of_indexes.update({'H': i['index']})
+        elif i['title'] == 'Mackenzie-Canada':
+            list_of_indexes.update({'C': i['index']})
+        elif i['title'] == 'Champions':
+            list_of_indexes.update({'S': i['index']})
+        elif i['title'] == 'Latinoamerica':
+            list_of_indexes.update({'M': i['index']})
 
-        index = list_of_indexes[tour_code]
+    index = list_of_indexes[tour_code]
 
-        return index
+    return index
 
 
-def fill_spreadsheet(tours_list, sheet):
-    spreadsheet_id = sheet.id
+def fill_spreadsheet(tours, sheet):
+    """Fills spreadsheet"""
+    sheet_id = sheet.id
 
-
-    for element in tours_list:
+    for element in tours:
         if element["tour_code"] == 'R':
             pga_name = element['name']
             pga_code = element['tour_code']
@@ -88,24 +93,24 @@ def fill_spreadsheet(tours_list, sheet):
             pga_link = element['link']
             pga_year = get_current_year_for_tour.main(pga_code)
             pga_players = players_list.main(pga_code.lower(), pga_id)
-            worksheet_index = get_actual_template_worksheet_index(pga_code, spreadsheet_id)
+            worksheet_index = get_actual_template_worksheet_index(pga_code, sheet_id)
             worksheet = sheet.get_worksheet(worksheet_index)
             ws_new = worksheet.duplicate(new_sheet_name=pga_name, insert_sheet_index=1)
 
             # Fill cells
-            ws_new.update_acell(template_r['description']['cell'], 
-            template_r['description']['templ'].format(pga_name, pga_code, pga_id, pga_time, pga_score))
-            ws_new.update_acell(template_r['homepage']['cell'], template_r['homepage']['templ'].format(pga_link))
-            ws_new.update_acell(template_r['field']['cell'], template_r['field']['templ'].format(pga_link))
-            ws_new.update_acell(template_r['tee-times']['cell'], template_r['tee-times']['templ'].format(pga_link))
-            ws_new.update_acell(template_r['leaderboard']['cell'], template_r['leaderboard']['templ'].format(pga_year, pga_link))
-            ws_new.update_acell(template_r['yahoo']['cell'], template_r['yahoo']['templ'].format(pga_year, pga_id))
-            ws_new.update_acell(template_r['korean']['cell'], template_r['korean']['templ'].format(pga_year, pga_link))
-            ws_new.update_acell(template_r['past-results']['cell'], template_r['past-results']['templ'].format(pga_link))
-            ws_new.update_acell(template_r['past-winners']['cell'], template_r['past-winners']['templ'].format(pga_link))
-            ws_new.update_acell(template_r['course']['cell'], template_r['course']['templ'].format(pga_link))
-            ws_new.update_acell(template_r['weather']['cell'], template_r['weather']['templ'].format(pga_link))
-            ws_new.update_acell(template_r['pinsheet']['cell'], template_r['pinsheet']['templ'].format(pga_year, pga_link))
+            ws_new.update_acell(TEMPLATE_R['description']['cell'],
+                                TEMPLATE_R['description']['templ'].format(pga_name, pga_code, pga_id, pga_time, pga_score))
+            ws_new.update_acell(TEMPLATE_R['homepage']['cell'], TEMPLATE_R['homepage']['templ'].format(pga_link))
+            ws_new.update_acell(TEMPLATE_R['field']['cell'], TEMPLATE_R['field']['templ'].format(pga_link))
+            ws_new.update_acell(TEMPLATE_R['tee-times']['cell'], TEMPLATE_R['tee-times']['templ'].format(pga_link))
+            ws_new.update_acell(TEMPLATE_R['leaderboard']['cell'], TEMPLATE_R['leaderboard']['templ'].format(pga_year, pga_link))
+            ws_new.update_acell(TEMPLATE_R['yahoo']['cell'], TEMPLATE_R['yahoo']['templ'].format(pga_year, pga_id))
+            ws_new.update_acell(TEMPLATE_R['korean']['cell'], TEMPLATE_R['korean']['templ'].format(pga_year, pga_link))
+            ws_new.update_acell(TEMPLATE_R['past-results']['cell'], TEMPLATE_R['past-results']['templ'].format(pga_link))
+            ws_new.update_acell(TEMPLATE_R['past-winners']['cell'], TEMPLATE_R['past-winners']['templ'].format(pga_link))
+            ws_new.update_acell(TEMPLATE_R['course']['cell'], TEMPLATE_R['course']['templ'].format(pga_link))
+            ws_new.update_acell(TEMPLATE_R['weather']['cell'], TEMPLATE_R['weather']['templ'].format(pga_link))
+            ws_new.update_acell(TEMPLATE_R['pinsheet']['cell'], TEMPLATE_R['pinsheet']['templ'].format(pga_year, pga_link))
 
             players_cells = worksheet.range('B32:B41')
             i = 0
@@ -124,21 +129,21 @@ def fill_spreadsheet(tours_list, sheet):
             ch_link = element['link']
             ch_year = get_current_year_for_tour.main(ch_code)
             ch_players = players_list.main(ch_code.lower(), ch_id)
-            worksheet_index = get_actual_template_worksheet_index(ch_code, spreadsheet_id)
+            worksheet_index = get_actual_template_worksheet_index(ch_code, sheet_id)
             worksheet = sheet.get_worksheet(worksheet_index)
             ws_new = worksheet.duplicate(new_sheet_name=ch_name, insert_sheet_index=worksheet_index - 1)
 
             # Fill cells
-            ws_new.update_acell(template_s['description']['cell'], 
-            template_s['description']['templ'].format(ch_name, ch_code, ch_id, ch_time, ch_score))
-            ws_new.update_acell(template_s['homepage']['cell'], template_s['homepage']['templ'].format(ch_link))
-            ws_new.update_acell(template_s['field']['cell'], template_s['field']['templ'].format(ch_link))
-            ws_new.update_acell(template_s['tee-times']['cell'], template_s['tee-times']['templ'].format(ch_link))
-            ws_new.update_acell(template_s['leaderboard']['cell'], template_s['leaderboard']['templ'].format(ch_year, ch_link))
-            ws_new.update_acell(template_s['past-results']['cell'], template_s['past-results']['templ'].format(ch_link))
-            ws_new.update_acell(template_s['past-winners']['cell'], template_s['past-winners']['templ'].format(ch_link))
-            ws_new.update_acell(template_s['course']['cell'], template_s['course']['templ'].format(ch_link))
-            ws_new.update_acell(template_s['weather']['cell'], template_s['weather']['templ'].format(ch_link))
+            ws_new.update_acell(TEMPLATE_S['description']['cell'],
+                                TEMPLATE_S['description']['templ'].format(ch_name, ch_code, ch_id, ch_time, ch_score))
+            ws_new.update_acell(TEMPLATE_S['homepage']['cell'], TEMPLATE_S['homepage']['templ'].format(ch_link))
+            ws_new.update_acell(TEMPLATE_S['field']['cell'], TEMPLATE_S['field']['templ'].format(ch_link))
+            ws_new.update_acell(TEMPLATE_S['tee-times']['cell'], TEMPLATE_S['tee-times']['templ'].format(ch_link))
+            ws_new.update_acell(TEMPLATE_S['leaderboard']['cell'], TEMPLATE_S['leaderboard']['templ'].format(ch_year, ch_link))
+            ws_new.update_acell(TEMPLATE_S['past-results']['cell'], TEMPLATE_S['past-results']['templ'].format(ch_link))
+            ws_new.update_acell(TEMPLATE_S['past-winners']['cell'], TEMPLATE_S['past-winners']['templ'].format(ch_link))
+            ws_new.update_acell(TEMPLATE_S['course']['cell'], TEMPLATE_S['course']['templ'].format(ch_link))
+            ws_new.update_acell(TEMPLATE_S['weather']['cell'], TEMPLATE_S['weather']['templ'].format(ch_link))
 
             players_cells = worksheet.range('B21:B30')
             i = 0
@@ -155,21 +160,21 @@ def fill_spreadsheet(tours_list, sheet):
             korn_score = element['score_type']
             korn_time = element['time_zone']
             korn_link = element['link']
-            worksheet_index = get_actual_template_worksheet_index(korn_code, spreadsheet_id)
+            worksheet_index = get_actual_template_worksheet_index(korn_code, sheet_id)
             worksheet = sheet.get_worksheet(worksheet_index)
             ws_new = worksheet.duplicate(new_sheet_name=korn_name, insert_sheet_index=worksheet_index - 1)
 
             # Fill cells
-            ws_new.update_acell(template_h['description']['cell'],
-            template_h['description']['templ'].format(korn_name, korn_code, korn_id, korn_time, korn_score))
-            ws_new.update_acell(template_h['homepage']['cell'], template_h['homepage']['templ'].format(korn_link))
-            ws_new.update_acell(template_h['field']['cell'], template_h['field']['templ'].format(korn_link))
-            ws_new.update_acell(template_h['tee-times']['cell'], template_h['tee-times']['templ'].format(korn_link))
-            ws_new.update_acell(template_h['leaderboard']['cell'], template_h['leaderboard']['templ'].format(korn_link))
-            ws_new.update_acell(template_h['past-results']['cell'], template_h['past-results']['templ'].format(korn_link))
-            ws_new.update_acell(template_h['past-winners']['cell'], template_h['past-winners']['templ'].format(korn_link))
-            ws_new.update_acell(template_h['course']['cell'], template_h['course']['templ'].format(korn_link))
-            ws_new.update_acell(template_h['weather']['cell'], template_h['weather']['templ'].format(korn_link))
+            ws_new.update_acell(TEMPLATE_H['description']['cell'],
+                                TEMPLATE_H['description']['templ'].format(korn_name, korn_code, korn_id, korn_time, korn_score))
+            ws_new.update_acell(TEMPLATE_H['homepage']['cell'], TEMPLATE_H['homepage']['templ'].format(korn_link))
+            ws_new.update_acell(TEMPLATE_H['field']['cell'], TEMPLATE_H['field']['templ'].format(korn_link))
+            ws_new.update_acell(TEMPLATE_H['tee-times']['cell'], TEMPLATE_H['tee-times']['templ'].format(korn_link))
+            ws_new.update_acell(TEMPLATE_H['leaderboard']['cell'], TEMPLATE_H['leaderboard']['templ'].format(korn_link))
+            ws_new.update_acell(TEMPLATE_H['past-results']['cell'], TEMPLATE_H['past-results']['templ'].format(korn_link))
+            ws_new.update_acell(TEMPLATE_H['past-winners']['cell'], TEMPLATE_H['past-winners']['templ'].format(korn_link))
+            ws_new.update_acell(TEMPLATE_H['course']['cell'], TEMPLATE_H['course']['templ'].format(korn_link))
+            ws_new.update_acell(TEMPLATE_H['weather']['cell'], TEMPLATE_H['weather']['templ'].format(korn_link))
 
         if element["tour_code"] == 'C':
             can_name = element['name']
@@ -178,59 +183,33 @@ def fill_spreadsheet(tours_list, sheet):
             can_score = element['score_type']
             can_time = element['time_zone']
             can_link = element['link']
-            worksheet_index = get_actual_template_worksheet_index(can_code, spreadsheet_id)
+            worksheet_index = get_actual_template_worksheet_index(can_code, sheet_id)
             worksheet = sheet.get_worksheet(worksheet_index)
             ws_new = worksheet.duplicate(new_sheet_name=can_name, insert_sheet_index=worksheet_index - 1)
 
             # Fill cells
-            ws_new.update_acell(template_c['description']['cell'],
-            template_c['description']['templ'].format(can_name, can_code, can_id, can_time, can_score))
-            ws_new.update_acell(template_c['homepage']['cell'], template_c['homepage']['templ'].format(can_link))
-            ws_new.update_acell(template_c['field']['cell'], template_c['field']['templ'].format(can_link))
-            ws_new.update_acell(template_c['tee-times']['cell'], template_c['tee-times']['templ'].format(can_link))
-            ws_new.update_acell(template_c['leaderboard']['cell'], template_c['leaderboard']['templ'].format(can_link))
-            ws_new.update_acell(template_c['leaderboard_fr']['cell'], template_c['leaderboard_fr']['templ'].format(can_link))
-            ws_new.update_acell(template_c['past-results']['cell'], template_c['past-results']['templ'].format(can_link))
-            ws_new.update_acell(template_c['past-winners']['cell'], template_c['past-winners']['templ'].format(can_link))
-            ws_new.update_acell(template_c['course']['cell'], template_c['course']['templ'].format(can_link))
-            ws_new.update_acell(template_c['weather']['cell'], template_c['weather']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['description']['cell'],
+                                TEMPLATE_C['description']['templ'].format(can_name, can_code, can_id, can_time, can_score))
+            ws_new.update_acell(TEMPLATE_C['homepage']['cell'], TEMPLATE_C['homepage']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['field']['cell'], TEMPLATE_C['field']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['tee-times']['cell'], TEMPLATE_C['tee-times']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['leaderboard']['cell'], TEMPLATE_C['leaderboard']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['leaderboard_fr']['cell'], TEMPLATE_C['leaderboard_fr']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['past-results']['cell'], TEMPLATE_C['past-results']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['past-winners']['cell'], TEMPLATE_C['past-winners']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['course']['cell'], TEMPLATE_C['course']['templ'].format(can_link))
+            ws_new.update_acell(TEMPLATE_C['weather']['cell'], TEMPLATE_C['weather']['templ'].format(can_link))
+    return "The template was successfully filled."
 
-
-def move_file_to_shared_folder():
-    """File_id is the same as spreadsheet id
-    """
-    # Connect to GDrive and return resource instance
-    g_drive = discovery.build('drive', 'v3', credentials=credentials)
-
-    file_id = '1lGQl_pCWsws8E6wbrZS9aSL4wOP1GqeyPdSZUIoYsvY'
-
-
-    results = g_drive.files().list(
-        pageSize=1000, fields="nextPageToken, files(id, name)").execute()
-    items = results.get('files', [])
-
-    # for item in items:
-    #     if item['id'] != "1RSARFhzrk4Cllu38qDrGihy9nbkBwpNmHq7wCxo9HPI":
-    #         id_1 = item['id']
-    #         g_drive.files().delete(fileId=item['id']).execute()
-
-    if not items:
-        print('No files found.')
-    else:
-        print('Files:')
-        for item in items:
-            print(u'{0} ({1})'.format(item['name'], item['id']))
-
-    return True
 
 def main():
+    """Main function"""
     sheet = create_spreadsheet()
-    spreadsheet_id = sheet.id
-    fill_spreadsheet(tours_list, sheet)
+    sheet_id = sheet.id
+    filled = fill_spreadsheet(TOURS_LIST, sheet)
     delete_template_worksheets.main(sheet)
-    return("The template was successfully filled. Link to the spreadsheet: https://docs.google.com/spreadsheets/d/{}".format(spreadsheet_id))
+    return "{} Link to the spreadsheet: https://docs.google.com/spreadsheets/d/{}".format(filled, sheet_id)
 
 
 if __name__ == "__main__":
     print(main())
-    # print(move_file_to_shared_folder())
