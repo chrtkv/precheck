@@ -39,5 +39,5 @@ ssh-import-id==5.7
 typing-extensions==3.7.4
 ufw==0.36
 uritemplate==3.0.0
-urllib3==1.22
+urllib3==1.26.5
 webencodings==0.5.1
